@@ -1,10 +1,10 @@
 import { Stack } from 'expo-router';
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function HomeStackLayout() {
+export default function FavoriteStackLayout() {
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <Stack initialRouteName={"Home"}  screenOptions={{
+            <Stack initialRouteName={"Favorite"}  screenOptions={{
                 headerShown: false,
             }} />
         </SafeAreaView>
