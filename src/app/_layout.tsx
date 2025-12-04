@@ -12,6 +12,7 @@ export default function RootLayout() {
             <PersistGate loading={null} persistor={persistor}>
                 <GestureHandlerRootView style={{ flex: 1 }}>
                     <Tabs
+                        initialRouteName={"homeStack"}
                         screenOptions={{
                             headerShown: false,
                         }}

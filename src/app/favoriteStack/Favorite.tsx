@@ -1,16 +1,35 @@
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { FlatList, Text, View, } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import tw from "twrnc";
 import SuperHeroCard from "../../components/SuperHeroCard";
+import HeroFilter, { HeroFilterKey } from "../../components/HeroFilter";
+import { useState } from "react";
 
 export default function Favorites() {
     const favorites = useSelector((s: RootState) => s.heroes.items);
 
+    const [sortKey, setSortKey] = useState<HeroFilterKey>("strength");
+
+    const sortedFavorites =
+        sortKey === "default"
+            ? favorites
+            : [...favorites].sort((a, b) => {
+                const key = sortKey as keyof NonNullable<typeof a.powerstats>;
+
+                const x = Number(a.powerstats?.[key] ?? 0);
+                const y = Number(b.powerstats?.[key] ?? 0);
+
+                return y - x;
+            });
+
     return (
         <View style={tw`flex-1 bg-gray-100 pt-4`}>
+            {favorites.length > 0 && (
+                <HeroFilter selected={sortKey} onChange={setSortKey} />
+            )}
             <FlatList
-                data={favorites}
+                data={sortedFavorites}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => <SuperHeroCard hero={item} />}
                 contentContainerStyle={tw`pb-6`}
