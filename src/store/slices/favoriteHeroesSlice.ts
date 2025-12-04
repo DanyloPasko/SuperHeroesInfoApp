@@ -12,6 +12,28 @@ export type Hero = {
         speed?: string;
         strength?: string;
     };
+    biography?: {
+        "full-name"?: string;
+        "alter-egos"?: string;
+        "place-of-birth"?: string;
+        publisher?: string;
+    };
+    appearance?: {
+        gender?: string;
+        race?: string;
+        height?: [string, string];
+        weight?: [string, string];
+        "eye-color"?: string;
+        "hair-color"?: string;
+    };
+    work?: {
+        occupation?: string;
+        base?: string;
+    };
+    connections?: {
+        "group-affiliation"?: string;
+        relatives?: string;
+    };
 };
 
 type FavoriteHeroesState = {
