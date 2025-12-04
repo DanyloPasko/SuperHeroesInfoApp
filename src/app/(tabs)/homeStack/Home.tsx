@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Keyboard, Text, TextInput, TouchableOpacity, View, } from "react-native";
-import { Hero } from "../../store/slices/favoriteHeroesSlice";
+import { Hero } from "../../../store/slices/favoriteHeroesSlice";
 import { Ionicons } from "@expo/vector-icons";
 import tw from "twrnc";
-import SuperHeroCard from "../../components/SuperHeroCard";
-import { API_KEY } from "../../utils/constans";
+import SuperHeroCard from "../../../components/SuperHeroCard";
+import { API_KEY } from "../../../utils/constans";
 
 export default function Home() {
     const [query, setQuery] = useState("");

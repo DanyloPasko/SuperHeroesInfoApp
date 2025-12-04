@@ -1,9 +1,9 @@
 import { useSelector } from "react-redux";
-import { RootState } from "../../store/store";
+import { RootState } from "../../../store/store";
 import { FlatList, Text, View } from "react-native";
 import tw from "twrnc";
-import SuperHeroCard from "../../components/SuperHeroCard";
-import HeroFilter, { HeroFilterKey } from "../../components/HeroFilter";
+import SuperHeroCard from "../../../components/SuperHeroCard";
+import HeroFilter, { HeroFilterKey } from "../../../components/HeroFilter";
 import { useState } from "react";
 
 export default function Favorites() {
