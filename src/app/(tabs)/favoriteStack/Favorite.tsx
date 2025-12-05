@@ -4,29 +4,43 @@ import { FlatList, Text, View } from "react-native";
 import tw from "twrnc";
 import SuperHeroCard from "../../../components/SuperHeroCard";
 import HeroFilter, { HeroFilterKey } from "../../../components/HeroFilter";
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { Hero } from "../../../store/slices/favoriteHeroesSlice";
 
 export default function Favorites() {
     const favorites = useSelector((s: RootState) => s.heroes.items);
 
     const [sortKey, setSortKey] = useState<HeroFilterKey>("strength");
 
-    const sortedFavorites =
-        sortKey === "default"
-            ? favorites
-            : [...favorites].sort((a, b) => {
-                const key = sortKey as keyof NonNullable<typeof a.powerstats>;
+    const handleSortChange = useCallback((key: HeroFilterKey) => {
+        setSortKey(key);
+    }, []);
 
-                const x = Number(a.powerstats?.[key] ?? 0);
-                const y = Number(b.powerstats?.[key] ?? 0);
+    const sortedFavorites = useMemo(() => {
+        if (sortKey === "default" || favorites.length === 0) {
+            return favorites;
+        }
 
-                return y - x;
-            });
+        return [...favorites].sort((a, b) => {
+            const key = sortKey as keyof NonNullable<typeof a.powerstats>;
+
+            const getPowerStatValue = (hero: Hero, statKey: typeof key): number => {
+                const value = hero.powerstats?.[statKey];
+                const num = parseInt(value as string, 10);
+                return isNaN(num) ? 0 : num;
+            };
+
+            const x = getPowerStatValue(a, key);
+            const y = getPowerStatValue(b, key);
+
+            return y - x;
+        });
+    }, [favorites, sortKey]);
 
     return (
         <View style={tw`flex-1 bg-gray-100 pt-4`}>
             {favorites.length > 0 && (
-                <HeroFilter selected={sortKey} onChange={setSortKey} />
+                <HeroFilter selected={sortKey} onChange={handleSortChange} />
             )}
             <FlatList
                 data={sortedFavorites}

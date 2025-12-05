@@ -1,39 +1,101 @@
-import { useState } from "react";
-import { ActivityIndicator, FlatList, Keyboard, Text, TextInput, TouchableOpacity, View, } from "react-native";
+import { useState, useCallback, useMemo } from "react";
+import {
+    ActivityIndicator,
+    FlatList,
+    Keyboard,
+    RefreshControl,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { Hero } from "../../../store/slices/favoriteHeroesSlice";
 import { Ionicons } from "@expo/vector-icons";
 import tw from "twrnc";
 import SuperHeroCard from "../../../components/SuperHeroCard";
 import { API_KEY } from "../../../utils/constans";
+import HeroFilter, { HeroFilterKey } from "../../../components/HeroFilter";
 
 export default function Home() {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<Hero[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
+    const [sortKey, setSortKey] = useState<HeroFilterKey>("default");
 
-    const searchHeroes = () => {
-        if (!query.trim()) return;
+    const handleSortChange = useCallback((key: HeroFilterKey) => {
+        setSortKey(key);
+    }, []);
 
-        setLoading(true);
-        setError(null);
+    const searchHeroes = useCallback(
+        (isRefreshing = false) => {
+            if (!query.trim()) return;
 
-        fetch(`https://www.superheroapi.com/api/${API_KEY}/search/${encodeURIComponent(query)}`)
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.response === "success" && Array.isArray(data.results)) {
-                    setResults(data.results);
-                } else {
+            if (isRefreshing) {
+                setRefreshing(true);
+            } else {
+                setRefreshing(false);
+                setLoading(true);
+            }
+            setError(null);
+            setSortKey("default");
+
+            fetch(`https://www.superheroapi.com/api/${API_KEY}/search/${encodeURIComponent(query)}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.response === "success" && Array.isArray(data.results)) {
+                        setResults(data.results);
+                    } else {
+                        setResults([]);
+                        setError(data.error || "No results");
+                    }
+                })
+                .catch((err) => {
                     setResults([]);
-                    setError(data.error || "No results");
-                }
-            })
-            .catch((err) => {
-                setResults([]);
-                setError(err.message || "Request failed");
-            })
-            .finally(() => setLoading(false));
-    };
+                    setError(err.message || "Request failed");
+                })
+                .finally(() => {
+                    setRefreshing(false);
+                    setLoading(false);
+                });
+        },
+        [query]
+    );
+
+    const onRefresh = useCallback(() => {
+        searchHeroes(true);
+    }, [searchHeroes]);
+
+    const clearSearch = useCallback(() => {
+        setQuery("");
+        setResults([]);
+        setError(null);
+        setLoading(false);
+        setRefreshing(false);
+        setSortKey("default");
+    }, []);
+
+    const sortedResults = useMemo(() => {
+        if (sortKey === "default" || results.length === 0) {
+            return results;
+        }
+
+        return [...results].sort((a, b) => {
+            const key = sortKey as keyof NonNullable<typeof a.powerstats>;
+
+            const getPowerStatValue = (hero: Hero, statKey: typeof key): number => {
+                const value = hero.powerstats?.[statKey];
+                const num = parseInt(value as string, 10);
+                return isNaN(num) ? 0 : num;
+            };
+
+            const x = getPowerStatValue(a, key);
+            const y = getPowerStatValue(b, key);
+
+            return y - x;
+        });
+    }, [results, sortKey]);
 
     return (
         <View style={tw`flex-1 bg-gray-100 pt-8`}>
@@ -53,11 +115,7 @@ export default function Home() {
                     />
                     {query.length > 0 && (
                         <TouchableOpacity
-                            onPress={() => {
-                                setQuery("");
-                                setResults([]);
-                                setError(null);
-                            }}
+                            onPress={clearSearch}
                             style={tw`p-2`}
                         >
                             <Ionicons name="close-circle" size={18} color="#9ca3af" />
@@ -66,25 +124,32 @@ export default function Home() {
                 </View>
             </View>
 
+            {results.length > 0 && !loading && (
+                <HeroFilter selected={sortKey} onChange={handleSortChange} />
+            )}
+
             <View style={tw`px-4 mt-3`}>
-                {loading && (
+                {loading && !refreshing && (
                     <View style={tw`flex-row items-center`}>
                         <ActivityIndicator />
                         <Text style={tw`ml-2 text-gray-700`}>Searching...</Text>
                     </View>
                 )}
-                {!loading && error && <Text style={tw`text-red-500`}>{error}</Text>}
-                {!loading && !error && results.length === 0 && query.length > 0 && (
+                {!loading && !refreshing && error && <Text style={tw`text-red-500`}>{error}</Text>}
+                {!loading && !refreshing && !error && results.length === 0 && query.length > 0 && (
                     <Text style={tw`text-gray-600`}>No heroes found.</Text>
                 )}
             </View>
 
             <FlatList
-                data={results}
+                data={sortedResults}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => <SuperHeroCard hero={item} />}
                 contentContainerStyle={tw`pt-3 pb-6`}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
                 ListEmptyComponent={
                     !loading && query.length === 0 ? (
                         <View style={tw`items-center mt-8`}>
