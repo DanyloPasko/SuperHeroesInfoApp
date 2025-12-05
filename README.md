@@ -1,4 +1,4 @@
-# [SuperHeroesInfoApp]
+# SuperHeroesInfoApp
 
 ## 🚀 Getting Started
 
