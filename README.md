@@ -14,8 +14,8 @@ Ensure you have the correct version of **Node.js** installed.
 
 1.  **Clone the repository** (if you haven't already):
     ```bash
-    git clone [YOUR_REPOSITORY_URL]
-    cd [YOUR_PROJECT_FOLDER]
+    git clone [REPOSITORY_URL]
+    cd [PROJECT_FOLDER]
     ```
 2.  **Install dependencies** using npm:
     ```bash
